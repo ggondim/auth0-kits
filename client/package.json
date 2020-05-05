@@ -9,7 +9,7 @@
   "author": "",
   "dependencies": {
     "date-fns": "^2.12.0",
-    "jwtiny": "1.0.0",
+    "jwtiny": "1.0.1",
     "simple-crypto-js": "^2.2.0"
   },
   "license": "ISC"
