@@ -11,7 +11,7 @@ const LOGOUT_ROUTE_CONFIG = {
   name: 'logout',
 };
 
-export function install (Vue, options) {
+function install (Vue, options) {
   const service = new Auth0Service(options.auth0);
   Vue.prototype.$auth0 = service;
 
@@ -27,3 +27,7 @@ export function install (Vue, options) {
   routes[1].beforeEnter = (to, from, next) => logoutRoute(service, to, from, next);
   _router.addRoutes(routes);
 }
+
+export default {
+  install,
+};

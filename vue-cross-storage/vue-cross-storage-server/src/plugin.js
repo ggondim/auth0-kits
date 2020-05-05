@@ -1,7 +1,7 @@
 import AuthKitsVuePlugin from '@auth0-kits/vue';
 import XAuth from './XAuth';
 
-export function install (Vue, options) {
+function install (Vue, options) {
   let _router = options.router;
   if (options.router.loginRouteConfig) {
     _router = options.router;
@@ -16,3 +16,7 @@ export function install (Vue, options) {
 
   return AuthKitsVuePlugin.install(Vue, options);
 }
+
+export default {
+  install,
+};
