@@ -1,5 +1,5 @@
 {
-  "name": "@auth0-kits/server",
+  "name": "@auth0-kits/client",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,5 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
+  "dependencies": {
+    "date-fns": "^2.12.0",
+    "jwtiny": "1.0.0",
+    "simple-crypto-js": "^2.2.0"
+  },
   "license": "ISC"
 }
