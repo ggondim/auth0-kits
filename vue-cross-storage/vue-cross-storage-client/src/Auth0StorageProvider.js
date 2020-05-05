@@ -10,27 +10,27 @@ class Auth0Client {
     return 'Auth0';
   }
 
-  async get accessToken() {
+  get accessToken() {
     return this.sendCommand(CrossStorageCommands.ACCESS_TOKEN);
   }
 
-  async get accessTokenPayload() {
+  get accessTokenPayload() {
     return this.sendCommand(CrossStorageCommands.ACCESS_TOKEN_PAYLOAD);
   }
 
-  async get usuario() {
+  get usuario() {
     return this.sendCommand(CrossStorageCommands.USER);
   }
 
-  async get refreshToken() {
+  get refreshToken() {
     return this.sendCommand(CrossStorageCommands.REFRESH_TOKEN);
   }
 
-  async get stateKey() {
+  get stateKey() {
     return this.sendCommand(CrossStorageCommands.STATE_KEY);
   }
 
-  async get ultimoProviderLogon() {
+  get ultimoProviderLogon() {
     return this.sendCommand(CrossStorageCommands.LAST_CONNECTION);
   }
 
