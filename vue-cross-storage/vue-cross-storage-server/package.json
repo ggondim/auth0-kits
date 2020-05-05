@@ -1,5 +1,5 @@
 {
-  "name": "@auth0-kits/client",
+  "name": "@auth0-kits/vue-cross-storage-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,8 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
+  "license": "ISC",
   "dependencies": {
-    "jwtiny": "1.0.0"
-  },
-  "license": "ISC"
+    "cross-storage-plus": "^1.0.1",
+    "@auth0-kits/client": "^1.0.0",
+    "@auth0-kits/vue": "^1.0.0"
+  }
 }

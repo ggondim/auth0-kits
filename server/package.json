@@ -1,17 +1,15 @@
 {
-  "name": "@auth0-kits/vue",
+  "name": "@auth0-kits/server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "directories": {
-    "example": "example"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "@auth0-kits/client": "^1.0.0"
-  },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^2.6.0",
+    "querystring": "^0.2.0"
+  }
 }
