@@ -1,15 +1,5 @@
 import { Auth0Service } from '@auth0-kits/client';
 
-const { tenantUrl: auth0url, clientId } = enx.auth0;
-const { authCode: authCodeUrl, refreshToken: refreshTokenUrl } = enx.login;
-
-const auth0 = new Auth0Service(window.localStorage, {
-  auth0url,
-  clientId,
-  authCodeUrl,
-  refreshTokenUrl,
-});
-
 export async function logoutRoute(auth0, /* to, from, next */) {
   auth0.clearStorage();
   // TODO: logout no Auth0
