@@ -11,6 +11,6 @@
   "dependencies": {
     "cross-storage-plus": "^1.0.1",
     "@auth0-kits/client": "^1.0.0",
-    "@auth0-kits/vue": "1.0.3"
+    "@auth0-kits/vue": "1.0.4"
   }
 }
