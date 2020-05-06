@@ -33,13 +33,12 @@ export class XAuthService {
   }
 
   async initialize() {
-    const storage = await CrossStorage.initializeClient(this.xauthUrl, {
+    this.storage = await CrossStorage.initializeClient(this.xauthUrl, {
       iframeId: 'xauth-iframe',
+      initialProvider: Auth0StorageProvider,
     });
-    storage.addProvider(Auth0StorageProvider);
-    this.storage = storage.getProvider(Auth0StorageProvider.PROVIDER);
 
-    if (this.injectWindow) window.xauth = storage;
+    if (this.injectWindow) window.xauth = this.storage;
 
     window.addEventListener('message', (event) => {
       if (Object.keys(Events).includes(event)) {

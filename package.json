@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/NOALVO/auth0-kits/issues"
   },
-  "homepage": "https://github.com/NOALVO/auth0-kits#readme"
+  "homepage": "https://github.com/NOALVO/auth0-kits#readme",
+  "dependencies": {
+    "cross-storage-plus": "^1.1.0"
+  }
 }
