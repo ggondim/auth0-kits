@@ -18,7 +18,7 @@ class Auth0Client {
     return this.sendCommand(CrossStorageCommands.ACCESS_TOKEN_PAYLOAD);
   }
 
-  get usuario() {
+  get user() {
     return this.sendCommand(CrossStorageCommands.USER);
   }
 
@@ -30,7 +30,7 @@ class Auth0Client {
     return this.sendCommand(CrossStorageCommands.STATE_KEY);
   }
 
-  get ultimoProviderLogon() {
+  get lastProviderConnection() {
     return this.sendCommand(CrossStorageCommands.LAST_CONNECTION);
   }
 

@@ -39,6 +39,7 @@ export class XAuthService {
     });
 
     if (this.injectWindow) window.xauth = this.storage;
+    await this.copyAllToStorage();
 
     window.addEventListener('message', (event) => {
       if (Object.keys(Events).includes(event)) {
@@ -59,13 +60,12 @@ export class XAuthService {
   }
 
   async copyAllToStorage() {
-    const promises = [ Promise.resolve() ];
     if (this.copyToStorage) {
-      promises = Object.keys(this.storageKeys).map((key) => {
-        return this.copyToStorage[key] = this.storage[key];
-      });
+      for (const enumItem in this.storageKeys) {
+        const key = this.storageKeys[enumItem];
+        this.copyToStorage[key] = await this.storage[key];
+      }
     }
-    return Promise.all(promises);
   }
 }
 

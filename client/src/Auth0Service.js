@@ -144,7 +144,7 @@ class Auth0Service {
    * @readonly
    * @memberof Auth0Service
    */
-  get lastLogonProvider() {
+  get lastProviderConnection() {
     return this.storage[this.storageKeys.LAST_CONNECTION];
   }
   //#endregion
@@ -318,7 +318,7 @@ class Auth0Service {
     const codeUrl = '/authorize?response_type=code';
 
     const state = this.generateState(redirect ? { redirect } : { ts: btoa(Date.now()) });
-    const connection = provider || this.lastLogonProvider;
+    const connection = provider || this.lastProviderConnection;
 
     const linkParams = `&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}`;
     let link = `${auth0url}${codeUrl}${linkParams}`;
