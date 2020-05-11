@@ -2,17 +2,28 @@
   "name": "@auth0-kits/vue-cross-storage-client",
   "version": "1.0.5",
   "description": "",
-  "main": "index.js",
-  "directories": {
-    "example": "example"
-  },
+  "main": "dist/vue-cross-storage-client.cjs.js",
+  "module": "dist/vue-cross-storage-client.esm.js",
+  "browser": "dist/vue-cross-storage-client.umd.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "node test/test.js",
+    "pretest": "npm run build"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@auth0-kits/client": "1.0.4",
     "cross-storage-plus": "^1.1.1",
-    "@auth0-kits/client": "1.0.4"
-  }
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.2.3",
+    "rollup": "^1.0.0",
+    "rollup-plugin-babel": "^4.2.0",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^4.0.0"
+  },
+  "files": [
+    "dist"
+  ]
 }
