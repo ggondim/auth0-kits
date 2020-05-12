@@ -26,8 +26,7 @@ const config = {
     path: __dirname + '/lib',
     filename: outputFile,
     library: libraryName,
-    libraryTarget: 'umd',
-    umdNamedDefine: true,
+    libraryTarget: 'commonjs',
     globalObject: "typeof self !== 'undefined' ? self : this"
   },
   module: {
