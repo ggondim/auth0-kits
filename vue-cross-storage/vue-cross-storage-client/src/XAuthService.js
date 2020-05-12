@@ -15,7 +15,7 @@ export class XAuthService {
     isInitialized = false,
     initializedStorage = null,
     copyToStorage = window.localStorage,
-    storageKeys = StorageKeys,
+    storageKeys = StorageKeys
   } = {}) {
     if (isInitialized) {
       this.storage = initializedStorage || window.xauth;
@@ -35,7 +35,7 @@ export class XAuthService {
   async initialize() {
     this.storage = await CrossStorage.initializeClient(this.xauthUrl, {
       iframeId: 'xauth-iframe',
-      initialProvider: Auth0StorageProvider,
+      initialProvider: Auth0StorageProvider
     });
 
     if (this.injectWindow) window.xauth = this.storage;
@@ -44,15 +44,17 @@ export class XAuthService {
     window.addEventListener('message', (event) => {
       if (Object.keys(Events).includes(event)) {
         this.copyAllToStorage().then(() => {
-          switch(event.data.event) {
+          switch (event.data.event) {
             case Events.ACCESS_RENEWED:
               return this.onAuthSuccess();
             case Events.ACCESS_RENEWING:
               return this.onAuthProgress();
             case Events.ACCESS_DENIED:
               return this.onAuthError(event.data.data);
+            default:
+              return undefined;
           }
-        })
+        });
       }
     });
 
@@ -63,6 +65,7 @@ export class XAuthService {
     if (this.copyToStorage) {
       for (const enumItem in this.storageKeys) {
         const key = this.storageKeys[enumItem];
+
         this.copyToStorage[key] = await this.storage[key];
       }
     }
@@ -81,5 +84,6 @@ export class XAuthService {
  */
 export async function initializeXAuth(options) {
   const intance = new XAuthService(options);
+
   return intance.initialize();
 }
