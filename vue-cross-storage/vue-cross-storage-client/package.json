@@ -2,7 +2,7 @@
   "name": "@auth0-kits/vue-cross-storage-client",
   "version": "1.0.10",
   "description": "",
-  "main": "lib/vue-cross-storage-client.js",
+  "main": "lib/@auth0-kits/vue-cross-storage-client.js",
   "scripts": {
     "build": "webpack --env dev && webpack --env build",
     "dev": "WEBPACK_ENV=dev webpack --progress --colors --watch"
