@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const path = require('path');
 const env = require('yargs').argv.env; // use --env with webpack 2
 const pkg = require('./package.json');
+const babelConfig = require('./babel.config.js');
 
 let libraryName = pkg.name;
 
@@ -32,14 +33,9 @@ const config = {
   module: {
     rules: [
       {
-        test: /(\.jsx|\.js)$/,
+        test:  /\.js$/,
         loader: 'babel-loader',
-        exclude: /(node_modules|bower_components)/
-      },
-      {
-        test: /(\.jsx|\.js)$/,
-        loader: 'eslint-loader',
-        exclude: /node_modules/
+        options: babelConfig,
       }
     ]
   },
