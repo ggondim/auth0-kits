@@ -1,0 +1,16 @@
+{
+  "name": "@auth0-kits/vue-cross-storage-server",
+  "version": "1.0.15",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@auth0-kits/client": "^1.0.6",
+    "@auth0-kits/vue": "^1.0.9",
+    "cross-storage-plus": "^1.1.1"
+  }
+}

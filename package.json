@@ -1,0 +1,26 @@
+{
+  "name": "auth0-kits",
+  "description": "A collection of Auth0 implementations to ease your app bootstrapping.",
+  "scripts": {
+    "publish:client": "cd ./client; npm publish",
+    "publish:server": "cd ./server; npm publish",
+    "publish:vue": "cd ./vue; npm publish",
+    "publish:vue-xauth:client": "cd ./vue-cross-storage/vue-cross-storage-client; npm publish",
+    "publish:vue-xauth:server": "cd ./vue-cross-storage/vue-cross-storage-server; npm publish",
+    "publish": "npm run publish:client; npm run publish:server; npm run publish:vue; npm run publish:vue-xauth:client; npm run publish:vue-xauth:server; "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ggondim/auth0-kits.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ggondim/auth0-kits/issues"
+  },
+  "homepage": "https://github.com/ggondim/auth0-kits#readme",
+  "dependencies": {
+    "cross-storage-plus": "^1.1.0"
+  }
+}
