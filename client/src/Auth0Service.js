@@ -284,7 +284,7 @@ class Auth0Service {
    */
   parseState(encrypted) {
     const simpleCrypto = new SimpleCrypto(this.stateKey);
-    const state = simpleCrypto.decrypt(encrypted, true);
+    const state = simpleCrypto.decrypt(encrypted);
     return state;
   }
   //#endregion
