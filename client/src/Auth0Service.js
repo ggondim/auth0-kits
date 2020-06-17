@@ -272,7 +272,10 @@ class Auth0Service {
    */
   generateState(objeto) {
     const simpleCrypto = new SimpleCrypto(this.stateKey);
-    return simpleCrypto.encrypt(objeto);
+    const encryptedState = simpleCrypto.encrypt(objeto);
+    const b64State = btoa(encryptedState);
+    const urlEncodedState = encodeURIComponent(b64State);
+    return urlEncodedState;
   }
 
   /**
@@ -282,9 +285,11 @@ class Auth0Service {
    * @returns {Object} Objeto de state decriptado.
    * @memberof Auth0Service
    */
-  parseState(encrypted) {
+  parseState(urlEncodedState) {
     const simpleCrypto = new SimpleCrypto(this.stateKey);
-    const state = simpleCrypto.decrypt(encrypted);
+    const b64State = decodeURIComponent(urlEncodedState);
+    const encryptedState = atob(b64State);
+    const state = simpleCrypto.decrypt(encryptedState);
     return state;
   }
   //#endregion
@@ -321,7 +326,6 @@ class Auth0Service {
     const redirectUri = `${window.location.protocol}//${window.location.host}/login`;
     const codeUrl = '/authorize?response_type=code';
 
-    debugger;
     const state = this.generateState(redirect ? { redirect } : { ts: btoa(Date.now()) });
     const connection = provider || this.lastProviderConnection;
 

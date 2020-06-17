@@ -1,6 +1,6 @@
 {
   "name": "@auth0-kits/vue",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "",
   "main": "index.js",
   "directories": {
@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@auth0-kits/client": "^1.0.6"
+    "@auth0-kits/client": "^1.0.9"
   },
   "author": "",
   "license": "ISC"

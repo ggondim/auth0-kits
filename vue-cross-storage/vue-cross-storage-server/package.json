@@ -1,6 +1,6 @@
 {
   "name": "@auth0-kits/vue-cross-storage-server",
-  "version": "1.0.15",
+  "version": "1.0.17",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@auth0-kits/client": "^1.0.6",
-    "@auth0-kits/vue": "^1.0.9",
+    "@auth0-kits/client": "^1.0.9",
+    "@auth0-kits/vue": "^1.0.10",
     "cross-storage-plus": "^1.1.1"
   }
 }

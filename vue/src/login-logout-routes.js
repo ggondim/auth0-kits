@@ -72,7 +72,9 @@ export async function loginRoute(auth0, to, from, next) {
     try {
       state = auth0.parseState(to.query.state);
     } catch (e) {
-      return _authError(`Parse state error`, to, next, { error: e });
+      const errorObject = JSON.parse(JSON.stringify(e));
+      errorObject.message = e.toString();
+      return _authError(`Parse state error`, to, next, { error: errorObject });
     }
   }
 
