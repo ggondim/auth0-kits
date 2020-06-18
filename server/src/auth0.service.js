@@ -1,16 +1,41 @@
 const querystring = require('querystring');
 const fetch = require('node-fetch');
+const Tracer = require('untracer');
 
 const TOKEN_URL = '/oauth/token';
 const MANAGEMENT_API_AUDIENCE = '/api/v2/';
 const USER_URL = '/api/v2/users/';
 
 class Auth0Service {
-  constructor({ auth0TenantUrl, oauthRedirectUri, clientId, clientSecret }) {
+  /**
+   *Creates an instance of Auth0Service.
+   * @param {*} {
+   *     auth0TenantUrl,
+   *     oauthRedirectUri,
+   *     clientId,
+   *     clientSecret,
+   *     debug = false,
+   *     tracer,
+   *     log,
+   *   } options
+   * @param {Tracer?} options.tracer
+   * @memberof Auth0Service
+   */
+  constructor({
+    auth0TenantUrl,
+    oauthRedirectUri,
+    clientId,
+    clientSecret,
+    debug = false,
+    tracer,
+    log,
+  }) {
     this.auth0TenantUrl = auth0TenantUrl;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.oauthRedirectUri = oauthRedirectUri;
+
+    this.tracer = tracer || new Tracer({ log, silent: !debug });
   }
 
   /**
@@ -22,8 +47,11 @@ class Auth0Service {
    * @memberof Auth0Service
    */
   async getManagementApiToken({ clientId, clientSecret } = {}) {
+    this.tracer.trace('getManagementApiToken');
+
     const client_id = clientId || this.clientId;
     const client_secret = clientSecret || this.clientSecret;
+    this.tracer.crumb({ client_id, client_secret });
 
     const body = querystring.stringify({
         grant_type: 'client_credentials',
@@ -31,15 +59,35 @@ class Auth0Service {
         client_secret,
         audience: `${this.auth0TenantUrl}${MANAGEMENT_API_AUDIENCE}`,
     });
+    this.tracer.crumb({ body });
 
-    const response = await fetch(`${this.auth0TenantUrl}${TOKEN_URL}`, {
-      method: 'POST',
-      body,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
-    const resToken = await response.json();
+    let response;
+    try {
+      const managementTokenUrl = `${this.auth0TenantUrl}${TOKEN_URL}`;
+      this.tracer.crumb({ managementTokenUrl });
 
-    return (!resToken || !resToken.access_token) ? null : resToken.access_token;
+      response = await fetch(managementTokenUrl, {
+        method: 'POST',
+        body,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+      
+      const { headers, status, statusText } = response;
+      this.tracer.crumb({ headers, status, statusText });      
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    let tokenResponse;
+    try {
+      tokenResponse = await response.json();
+      this.tracer.crumb({ tokenResponse });
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    const result = (!resToken || !resToken.access_token) ? null : resToken.access_token;
+    return this.tracer.dump(result);
   }
 
   /**
@@ -50,14 +98,36 @@ class Auth0Service {
    * @memberof Auth0Service
    */
   async getUserInfo(userId) {
-    const managementToken = await this.getManagementApiToken();
+    this.tracer.trace('getUserInfo', { userId });
+
+    let managementToken;
+    try {
+      managementToken = await this.getManagementApiToken({ logBreadcrumbs });
+      this.tracer.crumb({ managementToken });
+
+      if (!managementToken) {
+        throw new Error('Cannot get user info because managementToken is null.');
+      }
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
     const url = `${this.auth0TenantUrl}${USER_URL}${userId}`;
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${managementToken}`,
-      },
-    });
-    return response.json();
+    this.tracer.crumb({ url });
+
+    let response;
+    try {
+      response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${managementToken}` },
+      });
+      const { headers, status, statusText } = response;
+      this.tracer.crumb({ headers, status, statusText });
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    const responseJson = await response.json();
+    return this.tracer.dump(responseJson);
   }
 
   /**
@@ -68,6 +138,8 @@ class Auth0Service {
    * @memberof Auth0Service
    */
   async getUserAccessTokenByCode(authorizationCode) {
+    this.tracer.trace('getUserAccessTokenByCode', { authorizationCode });
+
     const body = querystring.stringify({
         grant_type: 'authorization_code',
         client_id: this.clientId,
@@ -75,12 +147,27 @@ class Auth0Service {
         redirect_uri: this.oauthRedirectUri,
         code: authorizationCode
     });
-    const response = await fetch(`${this.auth0TenantUrl}${TOKEN_URL}`, {
-      method: 'POST',
-      body,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
-    return response.json();
+    this.tracer.crumb({ body });
+
+    let response;
+    try {
+      const url = `${this.auth0TenantUrl}${TOKEN_URL}`;
+      this.tracer.crumb({ url });
+
+      response = await fetch(url, {
+        method: 'POST',
+        body,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+
+      const { headers, status, statusText } = response;
+      this.tracer.crumb({ headers, status, statusText });      
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    const responseJson = await response.json();
+    return this.tracer.dump(responseJson);
   }
 
   /**
@@ -91,6 +178,8 @@ class Auth0Service {
    * @memberof Auth0Service
    */
   async renewToken(refreshToken) {
+    this.tracer.trace('renewToken', { refreshToken });
+
     const body = querystring.stringify({
         grant_type: 'refresh_token',
         client_id: this.clientId,
@@ -98,12 +187,27 @@ class Auth0Service {
         redirect_uri: this.redirect_uri,
         refresh_token: refreshToken
     });
-    const response = await fetch(`${this.auth0TenantUrl}${TOKEN_URL}`, {
-      method: 'POST',
-      body,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
-    return response.json();
+    this.tracer.crumb({ body });
+
+    let response;
+    try {
+      const url = `${this.auth0TenantUrl}${TOKEN_URL}`;
+      this.tracer.crumb({ url });
+
+      response = await fetch(url, {
+        method: 'POST',
+        body,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+
+      const { headers, status, statusText } = response;
+      this.tracer.crumb({ headers, status, statusText });  
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    const responseJson = await response.json();
+    return this.tracer.dump(responseJson);
   }
 }
 
