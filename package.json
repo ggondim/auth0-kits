@@ -8,11 +8,14 @@
   "scripts": {
     "publish:client": "cd ./client; sh -c 'npm version $0; npm publish --access=public --logLevel=verbose'",
     "publish:server": "cd ./server; sh -c 'npm version $0; npm publish --access=public --logLevel=verbose'",
+
     "publish:vue": "cd ./vue; npm i -S @auth0-kits/client@latest; sh -c 'npm version $0; npm publish --access=public --logLevel=verbose'",
     "publish:vue-xauth-client": "cd ./vue-cross-storage/vue-cross-storage-client; npm i -S @auth0-kits/client@latest; sh -c 'npm version $0; npm publish --access=public'",
     "publish:vue-xauth-server": "cd ./vue-cross-storage/vue-cross-storage-server; npm i -S @auth0-kits/client@latest @auth0-kits/vue@latest; sh -c 'npm version $0; npm publish --access=public'",
+
     "publish:all:same-version": "sh -c 'npm run publish:client $0; npm run publish:server $0; npm run publish:vue $0; npm run publish:vue-xauth-client $0; npm run publish:vue-xauth-server $0; '",
     "publish:all:diff-version": "sh -c 'npm run publish:client $0; npm run publish:server $1; npm run publish:vue $2; npm run publish:vue-xauth-client $3; npm run publish:vue-xauth-server $4; '",
+
     "publish:all:diff-version:help": "echo \"client -> server -> vue -> vue-xauth-client -> vue-xauth-server \n\n================================================================================\"",
     "prepublish": "echo \"================ THIS IS NOT A PACKAGE, IT IS JUST A PACKAGE.JSON ================\n\nTo publish all the packages, run 'publish:all:same-version INCREMENT' or 'publish:all:diff-version A B C D E'. \n\nThe increments for 'publish:all:diff-version' are in the sequence of parameters below:\"; npm run -s publish:all:diff-version:help; sh -c 'exit 1'"
   }
