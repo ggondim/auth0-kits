@@ -5,6 +5,7 @@ const Tracer = require('untracer');
 const TOKEN_URL = '/oauth/token';
 const MANAGEMENT_API_AUDIENCE = '/api/v2/';
 const USER_URL = '/api/v2/users/';
+const LINK_ACCOUNTS_URL = '/identities';
 
 class Auth0Service {
   /**
@@ -192,6 +193,35 @@ class Auth0Service {
     let response;
     try {
       const url = `${this.auth0TenantUrl}${TOKEN_URL}`;
+      this.tracer.crumb({ url });
+
+      response = await fetch(url, {
+        method: 'POST',
+        body,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+
+      const { headers, status, statusText } = response;
+      this.tracer.crumb({ headers, status, statusText });  
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    const responseJson = await response.json();
+    return this.tracer.dump(responseJson);
+  }
+
+  async linkAccounts(primaryAccountUserId, secondaryToken) {
+    this.tracer.trace('linkAccounts', { primaryAccountUserId, secondaryToken });
+
+    const body = querystring.stringify({
+      link_with: secondaryToken,
+    });
+    this.tracer.crumb({ body });
+
+    let response;
+    try {
+      const url = `${this.auth0TenantUrl}${USER_URL}/${primaryAccountUserId}/${LINK_ACCOUNTS_URL}`;
       this.tracer.crumb({ url });
 
       response = await fetch(url, {

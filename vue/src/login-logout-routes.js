@@ -56,9 +56,9 @@ async function _exchangeCodeTrigger(auth0, to, next, state) {
   return next();
 }
 
-function _clientAuthorizationTrigger(auth0) {
+function _clientAuthorizationTrigger(auth0, options) {
   // 👣 Route triggered for user authorization, needs to redirect to Auth0 /authorize
-  return window.location = auth0.getLoginLink();
+  return window.location = auth0.getLoginLink(options);
 }
 
 export async function loginRoute(auth0, to, from, next) {
@@ -89,4 +89,54 @@ export async function loginRoute(auth0, to, from, next) {
   }
 
   return _authError('Login panic', to, next, { state, from });
+}
+
+export async function linkRoute(auth0, to, from, next) {
+  if (
+    (!to.query || !to.query.provider) 
+    && auth0.accessToken
+    && window.sessionStorage.accessToken
+  ) {
+    // já tem os dois tokens salvos  
+    const linked = await auth0.linkAccounts(window.sessionStorage.accessToken);
+    if (linked.primary) {
+      auth0.copyFromStorage(window.sessionStorage);
+      const returnTo = window.sessionStorage.returnTo || auth0.afterLoginUrl;
+      window.sessionStorage.clear();
+      return window.location = returnTo;
+    } else {
+      return _authError('Error when linking accounts', to, next, {
+        query: to.query,
+        secondaryToken: auth0.accessToken,
+        primaryToken: window.sessionStorage.accessToken,
+        linked,
+      });
+    }
+  } else if (
+    (!to.query || !to.query.provider) 
+    && (!auth0.accessToken || !window.sessionStorage.accessToken)
+  ) {
+    // deu ruim
+    return _authError('Not found query or tokens', to, next, {
+      query: to.query,
+      secondaryToken: auth0.accessToken,
+      primaryToken: window.sessionStorage.accessToken,
+    });
+  }
+
+  if (to.query && to.query.provider && auth0.accessToken) {
+    auth0.copyToStorage(window.sessionStorage);
+    if (to.query.returnTo) {
+      window.sessionStorage.setItem('returnTo', to.query.returnTo);
+    }
+
+    const scopes = to.query.scopes ? to.query.scopes.split(',') : [];
+    return _clientAuthorizationTrigger(auth0, {
+      redirect: `${window.location.protocol}//${window.location.host}/link`,
+      provider: to.query.provider,
+      scopes: [ ...auth0.DEFAULT_SCOPES, ...scopes ],
+    });
+  }
+  
+  return _authError('Link panic', to, next, { state, from });
 }

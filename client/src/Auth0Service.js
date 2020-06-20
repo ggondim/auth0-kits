@@ -39,6 +39,21 @@ async function _getTokenByRefreshToken(refreshToken, refreshTokenUrl) {
   return response.json();
 }
 
+async function _linkAccounts(primaryToken, secondaryToken, linkAccountsUrl) {
+  const response = await fetch(linkAccountsUrl, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ primaryToken, secondaryToken }),
+  });
+  if (!response.ok) {
+    throw response;
+  }
+  return response.json();
+}
+
 async function debug(flag, thing, {
   method = 'log',
   debuggger = console,
@@ -68,6 +83,7 @@ class Auth0Service {
     storage = window.localStorage,
     authCodeUrl,
     refreshTokenUrl,
+    linkAccountsUrl,
     clientId,
     auth0url,
     afterLoginUrl,
@@ -88,6 +104,9 @@ class Auth0Service {
     this.debug = debug;
     this.renewTimer = renewTimer;
     this.storageKeys = storageKeys;
+    this.linkAccountsUrl = linkAccountsUrl;
+
+    this.DEFAULT_SCOPES = DEFAULT_SCOPES;
   }
 
   //#region STORAGE PROPERTIES
@@ -160,10 +179,9 @@ class Auth0Service {
    * @memberof Auth0Service
    */
   clearStorage() {
-    this.storage.removeItem(this.storageKeys.ACCESS_TOKEN);
-    this.storage.removeItem(this.storageKeys.ACCESS_TOKEN_PAYLOAD);
-    this.storage.removeItem(this.storageKeys.USER);
-    this.storage.removeItem(this.storageKeys.LAST_CONNECTION);
+    Object.keys(this.storageKeys).forEach((key) => {
+      this.storage.removeItem(key);
+    });
     return null;
   }
 
@@ -203,6 +221,18 @@ class Auth0Service {
     if (refreshToken) {
       this.storage.setItem(this.storageKeys.REFRESH_TOKEN, refreshToken);
     }
+  }
+
+  copyToStorage(anotherStorage = window.sessionStorage) {
+    Object.keys(this.storageKeys).forEach((key) => {
+      anotherStorage.setItem(key, this.storage[key]);
+    });
+  }
+
+  copyFromStorage(anotherStorage = window.sessionStorage) {
+    Object.keys(this.storageKeys).forEach((key) => {
+      this.storage.setItem(key, anotherStorage[key]);
+    });
   }
   //#endregion
 
@@ -259,6 +289,11 @@ class Auth0Service {
       }
     }
     return worked;
+  }
+
+  async linkAccounts(primaryToken, { secondaryToken } = {}) {
+    const _secToken = secondaryToken || this.accessToken;
+    return _linkAccounts(primaryToken, _secToken, this.linkAccountsUrl)
   }
   //#endregion
 
@@ -318,12 +353,13 @@ class Auth0Service {
     audience,
     scopes = DEFAULT_SCOPES,
     accessType = 'offline',
+    loginRoute = 'login', // or 'link'
   } = {}) {
     const { clientId, auth0url } = this;
 
     if (!audience) audience = this.audience;
 
-    const redirectUri = `${window.location.protocol}//${window.location.host}/login`;
+    const redirectUri = `${window.location.protocol}//${window.location.host}/${loginRoute}`;
     const codeUrl = '/authorize?response_type=code';
 
     const state = this.generateState(redirect ? { redirect } : { ts: btoa(Date.now()) });
