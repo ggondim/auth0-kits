@@ -3,9 +3,13 @@ const fetch = require('node-fetch');
 const Tracer = require('untracer');
 
 const TOKEN_URL = '/oauth/token';
+
 const MANAGEMENT_API_AUDIENCE = '/api/v2/';
-const USER_URL = '/api/v2/users/';
-const LINK_ACCOUNTS_URL = '/identities';
+
+const CLIENT_URL = `${MANAGEMENT_API_AUDIENCE}/clients`;
+const USER_URL = `${MANAGEMENT_API_AUDIENCE}/users`;
+const USER_IDENTITIES_URL = '/identities';
+const USER_ROLES_URL = '/roles';
 
 class Auth0Service {
   /**
@@ -36,6 +40,8 @@ class Auth0Service {
     this.clientSecret = clientSecret;
     this.oauthRedirectUri = oauthRedirectUri;
 
+    this.cachedManagementApiToken = null;
+
     this.tracer = tracer || new Tracer({ log, silent: !debug });
   }
 
@@ -49,6 +55,11 @@ class Auth0Service {
    */
   async getManagementApiToken({ clientId, clientSecret } = {}) {
     this.tracer.trace('getManagementApiToken');
+
+    if (this.cachedManagementApiToken) {
+      this.tracer.crumb({ cached: this.cachedManagementApiToken });
+      return this.tracer.dump(this.cachedManagementApiToken);
+    } 
 
     const client_id = clientId || this.clientId;
     const client_secret = clientSecret || this.clientSecret;
@@ -214,6 +225,18 @@ class Auth0Service {
   async linkAccounts(primaryAccountUserId, secondaryToken) {
     this.tracer.trace('linkAccounts', { primaryAccountUserId, secondaryToken });
 
+    let managementToken;
+    try {
+      managementToken = await this.getManagementApiToken();
+      this.tracer.crumb({ managementToken });
+
+      if (!managementToken) {
+        throw new Error('Cannot get user info because managementToken is null.');
+      }
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
     const body = querystring.stringify({
       link_with: secondaryToken,
     });
@@ -221,13 +244,16 @@ class Auth0Service {
 
     let response;
     try {
-      const url = `${this.auth0TenantUrl}${USER_URL}/${primaryAccountUserId}/${LINK_ACCOUNTS_URL}`;
+      const url = `${this.auth0TenantUrl}${USER_URL}/${primaryAccountUserId}/${USER_IDENTITIES_URL}`;
       this.tracer.crumb({ url });
 
       response = await fetch(url, {
         method: 'POST',
         body,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: { 
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Bearer ${managementToken}`,
+        },
       });
 
       const { headers, status, statusText } = response;
@@ -238,6 +264,122 @@ class Auth0Service {
 
     const responseJson = await response.json();
     return this.tracer.dump(responseJson);
+  }
+
+  async getClientMetadata() {
+    this.tracer.trace('linkAccounts');
+
+    let managementToken;
+    try {
+      managementToken = await this.getManagementApiToken();
+      this.tracer.crumb({ managementToken });
+
+      if (!managementToken) {
+        throw new Error('Cannot get user info because managementToken is null.');
+      }
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    const clientUrl = `${this.auth0TenantUrl}${CLIENT_URL}/${this.clientId}`;
+    const requestUrl = `${clientUrl}?fields=client_metadata&include_fields=true`;
+    this.tracer.crumb({ clientUrl, requestUrl });
+
+    let response;
+    try {
+      response = await fetch(requestUrl, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${managementToken}` },
+      });
+
+      const { headers, status, statusText } = response;
+      this.tracer.crumb({ headers, status, statusText });  
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    const responseJson = await response.json();
+    this.tracer.crumb({ responseJson });
+
+    const metadata = responseJson.client_metadata || null;
+    return this.tracer.dump(metadata);
+  }
+
+  async assignUserRole(userId, ...rolesIds) {
+    this.tracer.trace('assignUserRole', { userId, rolesIds });
+
+    let managementToken;
+    try {
+      managementToken = await this.getManagementApiToken();
+      this.tracer.crumb({ managementToken });
+
+      if (!managementToken) {
+        throw new Error('Cannot get user info because managementToken is null.');
+      }
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    const body = JSON.stringify({ roles: rolesIds });
+    this.tracer.crumb({ body });
+
+    let response;
+    try {
+      const url = `${this.auth0TenantUrl}${USER_URL}/${userId}/${USER_ROLES_URL}`;
+      this.tracer.crumb({ url });
+
+      response = await fetch(url, {
+        method: 'POST',
+        body,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${managementToken}`,
+        },
+      });
+
+      const { headers, status, statusText } = response;
+      this.tracer.crumb({ headers, status, statusText });  
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    const success = response.status < 400;
+    return this.tracer.dump(success);
+  }
+
+  async deleteUser(userId) {
+    this.tracer.trace('deleteUser', { userId });
+
+    let managementToken;
+    try {
+      managementToken = await this.getManagementApiToken();
+      this.tracer.crumb({ managementToken });
+
+      if (!managementToken) {
+        throw new Error('Cannot get user info because managementToken is null.');
+      }
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    let response;
+    try {
+      const url = `${this.auth0TenantUrl}${USER_URL}/${userId}`;
+      this.tracer.crumb({ url });
+
+      response = await fetch(url, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${managementToken}` },
+      });
+
+      const { headers, status, statusText } = response;
+      this.tracer.crumb({ headers, status, statusText });  
+    } catch (error) {
+      throw this.tracer.break(error);
+    }
+
+    const success = response.status < 400;
+    return this.tracer.dump(success);
   }
 }
 

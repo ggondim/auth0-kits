@@ -54,6 +54,19 @@ async function _linkAccounts(primaryToken, secondaryToken, linkAccountsUrl) {
   return response.json();
 }
 
+async function _registerUser(registerUserUrl, accessToken, refreshToken = null) {
+  const response = await fetch(registerUserUrl, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ refreshToken }),
+  });
+  return response.json();
+}
+
 async function debug(flag, thing, {
   method = 'log',
   debuggger = console,
@@ -88,6 +101,9 @@ class Auth0Service {
     auth0url,
     afterLoginUrl,
     afterLogoutUrl,
+    registerPermissions,
+    registerUserUrl,
+    failOnRegister,
     audience,
     renewTimer = 5000,
     storageKeys = STORAGE_KEYS,
@@ -105,7 +121,11 @@ class Auth0Service {
     this.renewTimer = renewTimer;
     this.storageKeys = storageKeys;
     this.linkAccountsUrl = linkAccountsUrl;
+    this.registerPermissions = registerPermissions;
+    this.registerUserUrl = registerUserUrl;
+    this.failOnRegister = failOnRegister;
 
+    this.utils = utils;
     this.DEFAULT_SCOPES = DEFAULT_SCOPES;
   }
 
@@ -294,6 +314,19 @@ class Auth0Service {
   async linkAccounts(primaryToken, { secondaryToken } = {}) {
     const _secToken = secondaryToken || this.accessToken;
     return _linkAccounts(primaryToken, _secToken, this.linkAccountsUrl)
+  }
+
+  async registerUser() {
+    const register = await _registerUser(this.registerUserUrl, this.accessToken, this.refreshToken);
+    if (register && register.success) {
+      console.log(`User registered with: ${JSON.stringify(register.registeredBy)}`);
+      if (register.accessToken) {
+        this.saveStorage(register);
+      } else {
+        console.warn('Register API has not return a new access token. Some requests may fail.');
+      }
+    }
+    return register && register.success;
   }
   //#endregion
 

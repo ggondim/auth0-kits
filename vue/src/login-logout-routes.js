@@ -21,6 +21,24 @@ function _authError(message, to, next, data) {
   return next(error);
 }
 
+function _validatePermissions(decodedToken, permissions) {  
+  const notFoundPermissions = [];
+  if (permissions && Array.isArray(permissions)) {
+    if (
+      !decodedToken.permissions
+      || !decodedToken.permissions.length 
+      || !Array.isArray(decodedToken.permissions)
+    ) {
+      // token doesn't have permissions
+      notFoundPermissions = permissions;
+    } else {
+      notFoundPermissions = permissions
+        .filter(permission => !decodedToken.permissions.includes(permission));
+    }
+  }
+  return notFoundPermissions;
+}
+
 async function _exchangeCodeTrigger(auth0, to, next, state) {
   // 👣 Route triggered with a valid authorization code, needs to exchange for an access token
   const authCode = to.query.code;
@@ -38,8 +56,27 @@ async function _exchangeCodeTrigger(auth0, to, next, state) {
     return _authError(`Access token not returned by login API`, to, next, { result });
   }
 
-  // 👣 A valid access_token was successfully returned from login API
+  // 👣 A valid access_token was successfully returned from login API or by register API
   auth0.saveStorage(result);
+
+  if (auth0.registerPermissions) {
+    // 👣 Needs to register permissions for user if it is a new one
+    const decodedToken = auth0.accessTokenPayload;
+    const notFoundPermissions = _validatePermissions(decodedToken, auth0.registerPermissions);
+
+    if (notFoundPermissions.length) {
+      // 👣 User doesn't have required permissions, try to register it
+      const registerSuccess = await auth0.registerUser();
+
+      if (auth0.failOnRegister && !registerSuccess) {
+        // 👣 Fails if the failOnRegister flag is activated
+        return _authError(`Failed to register the user`, to, next, {
+          result,
+          permissions: auth0.registerPermissions,
+        });
+      }
+    }
+  }
 
   if (state.redirect) {
     // 👣 There is a previous URL to return to
