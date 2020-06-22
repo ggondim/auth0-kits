@@ -200,7 +200,8 @@ class Auth0Service {
    */
   clearStorage() {
     Object.keys(this.storageKeys).forEach((key) => {
-      this.storage.removeItem(key);
+      const storageKey = this.storageKeys[key];
+      this.storage.removeItem(storageKey);
     });
     return null;
   }
@@ -244,14 +245,16 @@ class Auth0Service {
   }
 
   copyToStorage(anotherStorage = window.sessionStorage) {
-    Object.keys(this.storageKeys).forEach((key) => {
-      anotherStorage.setItem(key, this.storage[key]);
+    Object.keys(this.storageKeys).forEach((enumProperty) => {
+      const storageKey = this.storageKeys[enumProperty];
+      anotherStorage.setItem(storageKey, this.storage[storageKey]);
     });
   }
 
   copyFromStorage(anotherStorage = window.sessionStorage) {
-    Object.keys(this.storageKeys).forEach((key) => {
-      this.storage.setItem(key, anotherStorage[key]);
+    Object.keys(this.storageKeys).forEach((enumProperty) => {
+      const storageKey = this.storageKeys[enumProperty];
+      this.storage.setItem(storageKey, anotherStorage[storageKey]);
     });
   }
   //#endregion

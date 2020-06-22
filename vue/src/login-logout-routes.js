@@ -22,7 +22,7 @@ function _authError(message, to, next, data) {
 }
 
 function _validatePermissions(decodedToken, permissions) {  
-  const notFoundPermissions = [];
+  let notFoundPermissions = [];
   if (permissions && Array.isArray(permissions)) {
     if (
       !decodedToken.permissions
@@ -136,7 +136,7 @@ export async function linkRoute(auth0, to, from, next) {
   ) {
     // já tem os dois tokens salvos  
     const linked = await auth0.linkAccounts(window.sessionStorage.accessToken);
-    if (linked.primary) {
+    if (linked.length) {
       auth0.copyFromStorage(window.sessionStorage);
       const returnTo = window.sessionStorage.returnTo || auth0.afterLoginUrl;
       window.sessionStorage.clear();

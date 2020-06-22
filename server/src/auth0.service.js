@@ -6,8 +6,8 @@ const TOKEN_URL = '/oauth/token';
 
 const MANAGEMENT_API_AUDIENCE = '/api/v2/';
 
-const CLIENT_URL = `${MANAGEMENT_API_AUDIENCE}/clients`;
-const USER_URL = `${MANAGEMENT_API_AUDIENCE}/users`;
+const CLIENT_URL = `${MANAGEMENT_API_AUDIENCE}clients`;
+const USER_URL = `${MANAGEMENT_API_AUDIENCE}users`;
 const USER_IDENTITIES_URL = '/identities';
 const USER_ROLES_URL = '/roles';
 
@@ -98,7 +98,7 @@ class Auth0Service {
       throw this.tracer.break(error);
     }
 
-    const result = (!resToken || !resToken.access_token) ? null : resToken.access_token;
+    const result = (!tokenResponse || !tokenResponse.access_token) ? null : tokenResponse.access_token;
     return this.tracer.dump(result);
   }
 
@@ -114,7 +114,7 @@ class Auth0Service {
 
     let managementToken;
     try {
-      managementToken = await this.getManagementApiToken({ logBreadcrumbs });
+      managementToken = await this.getManagementApiToken();
       this.tracer.crumb({ managementToken });
 
       if (!managementToken) {
@@ -124,7 +124,7 @@ class Auth0Service {
       throw this.tracer.break(error);
     }
 
-    const url = `${this.auth0TenantUrl}${USER_URL}${userId}`;
+    const url = `${this.auth0TenantUrl}${USER_URL}/${userId}`;
     this.tracer.crumb({ url });
 
     let response;
@@ -222,8 +222,11 @@ class Auth0Service {
     return this.tracer.dump(responseJson);
   }
 
-  async linkAccounts(primaryAccountUserId, secondaryToken) {
-    this.tracer.trace('linkAccounts', { primaryAccountUserId, secondaryToken });
+  async linkAccounts(primaryAccountUserId, {
+    provider,
+    secondaryUserId,
+  } = {}) {
+    this.tracer.trace('linkAccounts', { primaryAccountUserId, provider, secondaryUserId });
 
     let managementToken;
     try {
@@ -237,21 +240,23 @@ class Auth0Service {
       throw this.tracer.break(error);
     }
 
-    const body = querystring.stringify({
-      link_with: secondaryToken,
+    
+    const body = JSON.stringify({
+      provider,
+      user_id: secondaryUserId,
     });
     this.tracer.crumb({ body });
 
     let response;
     try {
-      const url = `${this.auth0TenantUrl}${USER_URL}/${primaryAccountUserId}/${USER_IDENTITIES_URL}`;
+      const url = `${this.auth0TenantUrl}${USER_URL}/${primaryAccountUserId}${USER_IDENTITIES_URL}`;
       this.tracer.crumb({ url });
 
       response = await fetch(url, {
         method: 'POST',
         body,
         headers: { 
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${managementToken}`,
         },
       });
@@ -263,11 +268,12 @@ class Auth0Service {
     }
 
     const responseJson = await response.json();
+    console.log(this.tracer.tracing)
     return this.tracer.dump(responseJson);
   }
 
   async getClientMetadata() {
-    this.tracer.trace('linkAccounts');
+    this.tracer.trace('getClientMetadata');
 
     let managementToken;
     try {
@@ -305,7 +311,7 @@ class Auth0Service {
     return this.tracer.dump(metadata);
   }
 
-  async assignUserRole(userId, ...rolesIds) {
+  async assignUserRoles(userId, ...rolesIds) {
     this.tracer.trace('assignUserRole', { userId, rolesIds });
 
     let managementToken;
@@ -325,7 +331,7 @@ class Auth0Service {
 
     let response;
     try {
-      const url = `${this.auth0TenantUrl}${USER_URL}/${userId}/${USER_ROLES_URL}`;
+      const url = `${this.auth0TenantUrl}${USER_URL}/${userId}${USER_ROLES_URL}`;
       this.tracer.crumb({ url });
 
       response = await fetch(url, {
@@ -344,6 +350,7 @@ class Auth0Service {
     }
 
     const success = response.status < 400;
+    console.log(this.tracer.currentTracing);
     return this.tracer.dump(success);
   }
 
